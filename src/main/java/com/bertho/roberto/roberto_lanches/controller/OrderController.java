@@ -24,7 +24,6 @@ public class OrderController {
     private OrderCustomService orderCustomService;
 
     @PostMapping("/{id}")
-    // public ResponseEntity<IngredientesDto> OrderFromMenu(@PathVariable Integer id, @RequestBody IngredientesDto body)
     public ResponseEntity<Hamburguer> OrderFromMenu(@PathVariable Integer id, @RequestBody IngredientesDto body) {
         List<Integer> ingredientesId = body.getIngredientesId();
         try {

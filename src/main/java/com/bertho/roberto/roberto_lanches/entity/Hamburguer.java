@@ -33,4 +33,6 @@ public class Hamburguer {
     public void setPrice(Double price) {
         this.price = price;
     }
+
+    public String getName() { return name; }
 }

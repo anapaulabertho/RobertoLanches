@@ -5,6 +5,7 @@ import com.bertho.roberto.roberto_lanches.entity.Hamburguer;
 import com.bertho.roberto.roberto_lanches.entity.Ingredient;
 import com.bertho.roberto.roberto_lanches.repository.HamburguerRepository;
 import com.bertho.roberto.roberto_lanches.repository.IngredientsRepository;
+import com.bertho.roberto.roberto_lanches.util.PromotionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,6 @@ public class OrderFromMenuService {
 
     private Optional<Hamburguer> getById(Integer id) {
         return hamburguerRepository.findById(id);
-        // return hamburguerId.orElseThrow(() -> new RuntimeException("Entity not found"));
     }
 
     public Hamburguer orderHamburguerFromMenu(Integer id, List<Integer> ingredientsIds) {
@@ -36,12 +36,32 @@ public class OrderFromMenuService {
 
         Map<Ingredient, Integer> qttIngredients = IngredientUtils.getQuantityOfEachIngredient(ingredients);
 
-        Double totalIngredients = IngredientUtils.getAllIngredientsPrice(qttIngredients);
+        Double totalPrice = IngredientUtils.getAllIngredientsPrice(qttIngredients) + hamburguer.getPrice();
 
-        // List<Double> ingredients = ingredientsRepository.getAllIngredientsPriceIn(ingredientsIds);
-        // Double totalIngredients = ingredients.stream().reduce(0.0, (subtotal, element) -> subtotal + element);
+        totalPrice = promotionTests(totalPrice, ingredientsIds, hamburguer);
 
-        hamburguer.setPrice(hamburguer.getPrice() + totalIngredients);
+        hamburguer.setPrice(totalPrice);
         return hamburguer;
+    }
+
+    private Double promotionTests (Double totalPrice, List<Integer> ingredientsIds, Hamburguer hamburguer) {
+        if (!hamburguer.getName().equals("X-BACON") && !hamburguer.getName().equals("X-EGG BACON")) {
+            Integer idLettuce = ingredientsRepository.getIngredientIdByName("ALFACE");
+            Integer idBacon = ingredientsRepository.getIngredientIdByName("BACON");
+
+            totalPrice = PromotionUtils.light(ingredientsIds, totalPrice, idBacon, idLettuce);
+        }
+
+        Integer idMeat = ingredientsRepository.getIngredientIdByName("HAMBURGUER DE CARNE");
+        Double meatPrice = ingredientsRepository.getIngredientPrice(idMeat);
+
+        totalPrice = PromotionUtils.tooMuch(ingredientsIds, totalPrice, idMeat, meatPrice);
+
+        Integer idCheese = ingredientsRepository.getIngredientIdByName("QUEIJO");
+        Double cheesePrice = ingredientsRepository.getIngredientPrice(idCheese);
+
+        totalPrice = PromotionUtils.tooMuch(ingredientsIds, totalPrice, idCheese, cheesePrice);
+
+        return totalPrice;
     }
 }
